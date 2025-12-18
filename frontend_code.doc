@@ -1,0 +1,701 @@
+<html><body>
+<h1>VizSprints - Frontend Code</h1>
+<hr>
+<h2>Frontend (React)</h2>
+<h3>frontend/index.html</h3>
+<pre style='background-color: #f4f4f4; padding: 10px; border: 1px solid #ddd;'><code>&lt;!doctype html&gt;
+&lt;html lang=&quot;en&quot;&gt;
+  &lt;head&gt;
+    &lt;meta charset=&quot;UTF-8&quot; /&gt;
+    &lt;link rel=&quot;icon&quot; type=&quot;image/svg+xml&quot; href=&quot;/vite.svg&quot; /&gt;
+    &lt;meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1.0&quot; /&gt;
+    &lt;title&gt;VizSprints Dashboard&lt;/title&gt;
+  &lt;/head&gt;
+  &lt;body&gt;
+    &lt;div id=&quot;root&quot;&gt;&lt;/div&gt;
+    &lt;script type=&quot;module&quot; src=&quot;/src/main.jsx&quot;&gt;&lt;/script&gt;
+  &lt;/body&gt;
+&lt;/html&gt;
+</code></pre>
+<br>
+<h3>frontend/package.json</h3>
+<pre style='background-color: #f4f4f4; padding: 10px; border: 1px solid #ddd;'><code>{
+    &quot;name&quot;: &quot;vizsprints-frontend&quot;,
+    &quot;private&quot;: true,
+    &quot;version&quot;: &quot;0.0.0&quot;,
+    &quot;type&quot;: &quot;module&quot;,
+    &quot;scripts&quot;: {
+        &quot;dev&quot;: &quot;vite&quot;,
+        &quot;build&quot;: &quot;vite build&quot;,
+        &quot;preview&quot;: &quot;vite preview&quot;
+    },
+    &quot;dependencies&quot;: {
+        &quot;react&quot;: &quot;^18.2.0&quot;,
+        &quot;react-dom&quot;: &quot;^18.2.0&quot;,
+        &quot;recharts&quot;: &quot;^2.10.3&quot;,
+        &quot;axios&quot;: &quot;^1.6.2&quot;
+    },
+    &quot;devDependencies&quot;: {
+        &quot;@types/react&quot;: &quot;^18.2.43&quot;,
+        &quot;@types/react-dom&quot;: &quot;^18.2.17&quot;,
+        &quot;@vitejs/plugin-react&quot;: &quot;^4.2.1&quot;,
+        &quot;autoprefixer&quot;: &quot;^10.4.16&quot;,
+        &quot;postcss&quot;: &quot;^8.4.32&quot;,
+        &quot;tailwindcss&quot;: &quot;^3.3.6&quot;,
+        &quot;vite&quot;: &quot;^5.0.8&quot;
+    }
+}</code></pre>
+<br>
+<h3>frontend/tailwind.config.js</h3>
+<pre style='background-color: #f4f4f4; padding: 10px; border: 1px solid #ddd;'><code>/** @type {import(&#x27;tailwindcss&#x27;).Config} */
+export default {
+    content: [
+        &quot;./index.html&quot;,
+        &quot;./src/**/*.{js,ts,jsx,tsx}&quot;,
+    ],
+    theme: {
+        extend: {
+            colors: {
+                primary: &#x27;#3b82f6&#x27;,
+                secondary: &#x27;#64748b&#x27;,
+                dark: &#x27;#0f172a&#x27;,
+                light: &#x27;#f8fafc&#x27;,
+            },
+        },
+    },
+    plugins: [],
+}
+</code></pre>
+<br>
+<h3>frontend/postcss.config.js</h3>
+<pre style='background-color: #f4f4f4; padding: 10px; border: 1px solid #ddd;'><code>export default {
+    plugins: {
+        tailwindcss: {},
+        autoprefixer: {},
+    },
+}
+</code></pre>
+<br>
+<h3>frontend/src/api.js</h3>
+<pre style='background-color: #f4f4f4; padding: 10px; border: 1px solid #ddd;'><code>import axios from &#x27;axios&#x27;;
+
+const api = axios.create({
+    baseURL: &#x27;/api&#x27;,
+    headers: {
+        &#x27;Content-Type&#x27;: &#x27;application/json&#x27;,
+    },
+});
+
+export default api;
+</code></pre>
+<br>
+<h3>frontend/src/components/ABTestResults.jsx</h3>
+<pre style='background-color: #f4f4f4; padding: 10px; border: 1px solid #ddd;'><code>import React, { useEffect, useState } from &#x27;react&#x27;;
+import api from &#x27;../api&#x27;;
+
+const ABTestResults = () =&gt; {
+    const [data, setData] = useState(null);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() =&gt; {
+        const fetchData = async () =&gt; {
+            try {
+                const response = await api.get(&#x27;/ab-test&#x27;);
+                setData(response.data);
+                setLoading(false);
+            } catch (err) {
+                console.error(&#x27;Error fetching A/B test data:&#x27;, err);
+                setLoading(false);
+            }
+        };
+
+        fetchData();
+    }, []);
+
+    if (loading) return &lt;div className=&quot;h-64 flex items-center justify-center text-slate-400&quot;&gt;Loading...&lt;/div&gt;;
+
+    const VariantCard = ({ variant, data, isWinner }) =&gt; (
+        &lt;div className={`p-4 rounded-lg border ${isWinner ? &#x27;border-green-500 bg-slate-700&#x27; : &#x27;border-slate-600 bg-slate-800&#x27;}`}&gt;
+            &lt;div className=&quot;flex justify-between items-center mb-4&quot;&gt;
+                &lt;h4 className=&quot;text-lg font-semibold text-white&quot;&gt;Variant {variant}&lt;/h4&gt;
+                {isWinner &amp;&amp; &lt;span className=&quot;px-2 py-1 text-xs font-medium text-green-300 bg-green-900/50 rounded-full&quot;&gt;Winner&lt;/span&gt;}
+            &lt;/div&gt;
+            &lt;dl className=&quot;grid grid-cols-2 gap-4&quot;&gt;
+                &lt;div&gt;
+                    &lt;dt className=&quot;text-xs text-slate-400&quot;&gt;Users&lt;/dt&gt;
+                    &lt;dd className=&quot;text-lg font-medium text-white&quot;&gt;{data.total_users}&lt;/dd&gt;
+                &lt;/div&gt;
+                &lt;div&gt;
+                    &lt;dt className=&quot;text-xs text-slate-400&quot;&gt;Events/User&lt;/dt&gt;
+                    &lt;dd className=&quot;text-lg font-medium text-white&quot;&gt;{data.avg_events_per_user}&lt;/dd&gt;
+                &lt;/div&gt;
+            &lt;/dl&gt;
+
+            &lt;div className=&quot;mt-4&quot;&gt;
+                &lt;h5 className=&quot;text-sm font-medium text-slate-300 mb-2&quot;&gt;Funnel Conversion&lt;/h5&gt;
+                &lt;div className=&quot;space-y-2&quot;&gt;
+                    {data.funnel.map((stage) =&gt; (
+                        &lt;div key={stage.stage} className=&quot;flex justify-between items-center text-sm&quot;&gt;
+                            &lt;span className=&quot;text-slate-400 truncate w-24&quot;&gt;{stage.stage}&lt;/span&gt;
+                            &lt;div className=&quot;flex-1 mx-2 h-2 bg-slate-700 rounded-full overflow-hidden&quot;&gt;
+                                &lt;div
+                                    className={`h-full rounded-full ${variant === &#x27;A&#x27; ? &#x27;bg-blue-400&#x27; : &#x27;bg-purple-400&#x27;}`}
+                                    style={{ width: `${stage.conversion_rate}%` }}
+                                /&gt;
+                            &lt;/div&gt;
+                            &lt;span className=&quot;text-slate-300 w-12 text-right&quot;&gt;{stage.conversion_rate}%&lt;/span&gt;
+                        &lt;/div&gt;
+                    ))}
+                &lt;/div&gt;
+            &lt;/div&gt;
+        &lt;/div&gt;
+    );
+
+    return (
+        &lt;div className=&quot;space-y-6&quot;&gt;
+            &lt;div className=&quot;flex items-center justify-between&quot;&gt;
+                &lt;div className=&quot;text-sm text-slate-400&quot;&gt;
+                    Comparison based on average events per user
+                &lt;/div&gt;
+                &lt;div className={`text-sm font-medium ${data.lift &gt; 0 ? &#x27;text-green-400&#x27; : &#x27;text-red-400&#x27;}`}&gt;
+                    {data.lift &gt; 0 ? &#x27;+&#x27; : &#x27;&#x27;}{data.lift}% Lift (B vs A)
+                &lt;/div&gt;
+            &lt;/div&gt;
+
+            &lt;div className=&quot;grid grid-cols-1 md:grid-cols-2 gap-4&quot;&gt;
+                &lt;VariantCard
+                    variant=&quot;A&quot;
+                    data={data.variant_A}
+                    isWinner={data.lift &lt; 0}
+                /&gt;
+                &lt;VariantCard
+                    variant=&quot;B&quot;
+                    data={data.variant_B}
+                    isWinner={data.lift &gt; 0}
+                /&gt;
+            &lt;/div&gt;
+        &lt;/div&gt;
+    );
+};
+
+export default ABTestResults;
+</code></pre>
+<br>
+<h3>frontend/src/components/CohortHeatmap.jsx</h3>
+<pre style='background-color: #f4f4f4; padding: 10px; border: 1px solid #ddd;'><code>import React, { useEffect, useState } from &#x27;react&#x27;;
+import api from &#x27;../api&#x27;;
+
+const CohortHeatmap = () =&gt; {
+    const [data, setData] = useState([]);
+    const [maxMonths, setMaxMonths] = useState(0);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() =&gt; {
+        const fetchData = async () =&gt; {
+            try {
+                const response = await api.get(&#x27;/cohorts&#x27;);
+                setData(response.data.cohorts);
+                setMaxMonths(response.data.max_months);
+                setLoading(false);
+            } catch (err) {
+                console.error(&#x27;Error fetching cohort data:&#x27;, err);
+                setLoading(false);
+            }
+        };
+
+        fetchData();
+    }, []);
+
+    if (loading) return &lt;div className=&quot;h-64 flex items-center justify-center text-slate-400&quot;&gt;Loading...&lt;/div&gt;;
+
+    const getBackgroundColor = (value) =&gt; {
+        if (value === 0) return &#x27;bg-slate-800&#x27;;
+        if (value &lt; 20) return &#x27;bg-blue-950&#x27;;
+        if (value &lt; 40) return &#x27;bg-blue-900&#x27;;
+        if (value &lt; 60) return &#x27;bg-blue-700&#x27;;
+        if (value &lt; 80) return &#x27;bg-blue-600&#x27;;
+        return &#x27;bg-blue-500&#x27;;
+    };
+
+    return (
+        &lt;div className=&quot;overflow-x-auto&quot;&gt;
+            &lt;table className=&quot;min-w-full divide-y divide-slate-700&quot;&gt;
+                &lt;thead className=&quot;bg-slate-700&quot;&gt;
+                    &lt;tr&gt;
+                        &lt;th className=&quot;px-3 py-2 text-left text-xs font-medium text-slate-300 uppercase tracking-wider sticky left-0 bg-slate-700&quot;&gt;Cohort&lt;/th&gt;
+                        &lt;th className=&quot;px-3 py-2 text-left text-xs font-medium text-slate-300 uppercase tracking-wider&quot;&gt;Users&lt;/th&gt;
+                        {[...Array(maxMonths + 1)].map((_, i) =&gt; (
+                            &lt;th key={i} className=&quot;px-3 py-2 text-center text-xs font-medium text-slate-300 uppercase tracking-wider&quot;&gt;
+                                Month {i}
+                            &lt;/th&gt;
+                        ))}
+                    &lt;/tr&gt;
+                &lt;/thead&gt;
+                &lt;tbody className=&quot;bg-slate-800 divide-y divide-slate-700&quot;&gt;
+                    {data.map((row) =&gt; (
+                        &lt;tr key={row.cohort}&gt;
+                            &lt;td className=&quot;px-3 py-2 whitespace-nowrap text-sm font-medium text-white sticky left-0 bg-slate-800&quot;&gt;
+                                {row.cohort}
+                            &lt;/td&gt;
+                            &lt;td className=&quot;px-3 py-2 whitespace-nowrap text-sm text-slate-300&quot;&gt;
+                                {row.size}
+                            &lt;/td&gt;
+                            {[...Array(maxMonths + 1)].map((_, i) =&gt; {
+                                const value = row[`month_${i}`];
+                                return (
+                                    &lt;td
+                                        key={i}
+                                        className={`px-3 py-2 whitespace-nowrap text-sm text-center ${getBackgroundColor(value)}`}
+                                        title={`${value}% retention`}
+                                    &gt;
+                                        {value &gt; 0 ? `${value}%` : &#x27;-&#x27;}
+                                    &lt;/td&gt;
+                                );
+                            })}
+                        &lt;/tr&gt;
+                    ))}
+                &lt;/tbody&gt;
+            &lt;/table&gt;
+        &lt;/div&gt;
+    );
+};
+
+export default CohortHeatmap;
+</code></pre>
+<br>
+<h3>frontend/src/components/Dashboard.jsx</h3>
+<pre style='background-color: #f4f4f4; padding: 10px; border: 1px solid #ddd;'><code>import React, { useEffect, useState } from &#x27;react&#x27;;
+import api from &#x27;../api&#x27;;
+import MetricsCard from &#x27;./MetricsCard&#x27;;
+import CohortHeatmap from &#x27;./CohortHeatmap&#x27;;
+import FunnelChart from &#x27;./FunnelChart&#x27;;
+import ABTestResults from &#x27;./ABTestResults&#x27;;
+import EngagementChart from &#x27;./EngagementChart&#x27;;
+import UserSessions from &#x27;./UserSessions&#x27;;
+
+const Dashboard = () =&gt; {
+    const [metrics, setMetrics] = useState(null);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
+
+    useEffect(() =&gt; {
+        const fetchMetrics = async () =&gt; {
+            try {
+                const response = await api.get(&#x27;/metrics&#x27;);
+                setMetrics(response.data);
+                setLoading(false);
+            } catch (err) {
+                console.error(&#x27;Error fetching metrics:&#x27;, err);
+                setError(&#x27;Failed to load dashboard data&#x27;);
+                setLoading(false);
+            }
+        };
+
+        fetchMetrics();
+    }, []);
+
+    if (loading) {
+        return (
+            &lt;div className=&quot;flex justify-center items-center h-64&quot;&gt;
+                &lt;div className=&quot;animate-spin rounded-full h-12 w-12 border-b-2 border-primary&quot;&gt;&lt;/div&gt;
+            &lt;/div&gt;
+        );
+    }
+
+    if (error) {
+        return (
+            &lt;div className=&quot;bg-red-900/20 border-l-4 border-red-400 p-4&quot;&gt;
+                &lt;div className=&quot;flex&quot;&gt;
+                    &lt;div className=&quot;ml-3&quot;&gt;
+                        &lt;p className=&quot;text-sm text-red-300&quot;&gt;{error}&lt;/p&gt;
+                    &lt;/div&gt;
+                &lt;/div&gt;
+            &lt;/div&gt;
+        );
+    }
+
+    return (
+        &lt;div className=&quot;space-y-6&quot;&gt;
+            {/* Key Metrics Grid */}
+            &lt;div className=&quot;grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3&quot;&gt;
+                &lt;MetricsCard
+                    title=&quot;Total Users&quot;
+                    value={metrics.total_users.toLocaleString()}
+                    subtext=&quot;Registered users&quot;
+                /&gt;
+                &lt;MetricsCard
+                    title=&quot;Active Users&quot;
+                    value={metrics.active_users.toLocaleString()}
+                    subtext=&quot;Last 30 days&quot;
+                /&gt;
+                &lt;MetricsCard
+                    title=&quot;Conversion Rate&quot;
+                    value={`${metrics.conversion_rate}%`}
+                    subtext=&quot;Task completion&quot;
+                /&gt;
+            &lt;/div&gt;
+
+            {/* Charts Section */}
+            &lt;div className=&quot;grid grid-cols-1 lg:grid-cols-2 gap-6&quot;&gt;
+                &lt;div className=&quot;bg-slate-800 p-6 rounded-lg shadow&quot;&gt;
+                    &lt;h3 className=&quot;text-lg font-medium leading-6 text-white mb-4&quot;&gt;Engagement Over Time&lt;/h3&gt;
+                    &lt;EngagementChart /&gt;
+                &lt;/div&gt;
+                &lt;div className=&quot;bg-slate-800 p-6 rounded-lg shadow&quot;&gt;
+                    &lt;h3 className=&quot;text-lg font-medium leading-6 text-white mb-4&quot;&gt;Conversion Funnel&lt;/h3&gt;
+                    &lt;FunnelChart /&gt;
+                &lt;/div&gt;
+            &lt;/div&gt;
+
+            &lt;div className=&quot;grid grid-cols-1 gap-6&quot;&gt;
+                &lt;div className=&quot;bg-slate-800 p-6 rounded-lg shadow&quot;&gt;
+                    &lt;h3 className=&quot;text-lg font-medium leading-6 text-white mb-4&quot;&gt;Cohort Retention Analysis&lt;/h3&gt;
+                    &lt;CohortHeatmap /&gt;
+                &lt;/div&gt;
+                &lt;div className=&quot;bg-slate-800 p-6 rounded-lg shadow&quot;&gt;
+                    &lt;h3 className=&quot;text-lg font-medium leading-6 text-white mb-4&quot;&gt;A/B Test Results&lt;/h3&gt;
+                    &lt;ABTestResults /&gt;
+                &lt;/div&gt;
+                &lt;div className=&quot;bg-slate-800 p-6 rounded-lg shadow&quot;&gt;
+                    &lt;h3 className=&quot;text-lg font-medium leading-6 text-white mb-4&quot;&gt;User Activity Tracking&lt;/h3&gt;
+                    &lt;UserSessions /&gt;
+                &lt;/div&gt;
+            &lt;/div&gt;
+        &lt;/div&gt;
+    );
+};
+
+export default Dashboard;
+</code></pre>
+<br>
+<h3>frontend/src/components/EngagementChart.jsx</h3>
+<pre style='background-color: #f4f4f4; padding: 10px; border: 1px solid #ddd;'><code>import React, { useEffect, useState } from &#x27;react&#x27;;
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from &#x27;recharts&#x27;;
+import api from &#x27;../api&#x27;;
+
+const EngagementChart = () =&gt; {
+    const [data, setData] = useState([]);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() =&gt; {
+        const fetchData = async () =&gt; {
+            try {
+                const response = await api.get(&#x27;/engagement&#x27;);
+                setData(response.data.timeline);
+                setLoading(false);
+            } catch (err) {
+                console.error(&#x27;Error fetching engagement data:&#x27;, err);
+                setLoading(false);
+            }
+        };
+
+        fetchData();
+    }, []);
+
+    if (loading) return &lt;div className=&quot;h-64 flex items-center justify-center text-slate-400&quot;&gt;Loading...&lt;/div&gt;;
+
+    return (
+        &lt;div className=&quot;h-80 w-full&quot;&gt;
+            &lt;ResponsiveContainer width=&quot;100%&quot; height=&quot;100%&quot;&gt;
+                &lt;LineChart
+                    data={data}
+                    margin={{
+                        top: 5,
+                        right: 30,
+                        left: 20,
+                        bottom: 5,
+                    }}
+                &gt;
+                    &lt;CartesianGrid strokeDasharray=&quot;3 3&quot; vertical={false} stroke=&quot;#334155&quot; /&gt;
+                    &lt;XAxis
+                        dataKey=&quot;date&quot;
+                        tick={{ fontSize: 12, fill: &#x27;#94a3b8&#x27; }}
+                        tickLine={false}
+                        axisLine={{ stroke: &#x27;#334155&#x27; }}
+                    /&gt;
+                    &lt;YAxis
+                        yAxisId=&quot;left&quot;
+                        tick={{ fontSize: 12, fill: &#x27;#94a3b8&#x27; }}
+                        tickLine={false}
+                        axisLine={false}
+                    /&gt;
+                    &lt;YAxis
+                        yAxisId=&quot;right&quot;
+                        orientation=&quot;right&quot;
+                        tick={{ fontSize: 12, fill: &#x27;#94a3b8&#x27; }}
+                        tickLine={false}
+                        axisLine={false}
+                    /&gt;
+                    &lt;Tooltip
+                        contentStyle={{ backgroundColor: &#x27;#1e293b&#x27;, borderRadius: &#x27;8px&#x27;, border: &#x27;1px solid #334155&#x27;, boxShadow: &#x27;0 4px 6px -1px rgb(0 0 0 / 0.3)&#x27;, color: &#x27;#fff&#x27; }}
+                    /&gt;
+                    &lt;Legend /&gt;
+                    &lt;Line
+                        yAxisId=&quot;left&quot;
+                        type=&quot;monotone&quot;
+                        dataKey=&quot;active_users&quot;
+                        name=&quot;Active Users&quot;
+                        stroke=&quot;#3b82f6&quot;
+                        strokeWidth={2}
+                        dot={false}
+                        activeDot={{ r: 6 }}
+                    /&gt;
+                    &lt;Line
+                        yAxisId=&quot;right&quot;
+                        type=&quot;monotone&quot;
+                        dataKey=&quot;event_count&quot;
+                        name=&quot;Total Events&quot;
+                        stroke=&quot;#10b981&quot;
+                        strokeWidth={2}
+                        dot={false}
+                    /&gt;
+                &lt;/LineChart&gt;
+            &lt;/ResponsiveContainer&gt;
+        &lt;/div&gt;
+    );
+};
+
+export default EngagementChart;
+</code></pre>
+<br>
+<h3>frontend/src/components/FunnelChart.jsx</h3>
+<pre style='background-color: #f4f4f4; padding: 10px; border: 1px solid #ddd;'><code>import React, { useEffect, useState } from &#x27;react&#x27;;
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Cell } from &#x27;recharts&#x27;;
+import api from &#x27;../api&#x27;;
+
+const FunnelChart = () =&gt; {
+    const [data, setData] = useState([]);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() =&gt; {
+        const fetchData = async () =&gt; {
+            try {
+                const response = await api.get(&#x27;/funnel&#x27;);
+                setData(response.data.funnel);
+                setLoading(false);
+            } catch (err) {
+                console.error(&#x27;Error fetching funnel data:&#x27;, err);
+                setLoading(false);
+            }
+        };
+
+        fetchData();
+    }, []);
+
+    if (loading) return &lt;div className=&quot;h-64 flex items-center justify-center text-slate-400&quot;&gt;Loading...&lt;/div&gt;;
+
+    return (
+        &lt;div className=&quot;h-80 w-full&quot;&gt;
+            &lt;ResponsiveContainer width=&quot;100%&quot; height=&quot;100%&quot;&gt;
+                &lt;BarChart
+                    data={data}
+                    layout=&quot;vertical&quot;
+                    margin={{
+                        top: 5,
+                        right: 30,
+                        left: 40,
+                        bottom: 5,
+                    }}
+                &gt;
+                    &lt;CartesianGrid strokeDasharray=&quot;3 3&quot; horizontal={true} vertical={false} stroke=&quot;#334155&quot; /&gt;
+                    &lt;XAxis type=&quot;number&quot; hide /&gt;
+                    &lt;YAxis
+                        dataKey=&quot;stage&quot;
+                        type=&quot;category&quot;
+                        width={100}
+                        tick={{ fontSize: 12, fill: &#x27;#94a3b8&#x27; }}
+                        tickLine={false}
+                        axisLine={false}
+                    /&gt;
+                    &lt;Tooltip
+                        cursor={{ fill: &#x27;#334155&#x27; }}
+                        content={({ active, payload, label }) =&gt; {
+                            if (active &amp;&amp; payload &amp;&amp; payload.length) {
+                                const data = payload[0].payload;
+                                return (
+                                    &lt;div className=&quot;bg-slate-800 p-3 rounded-lg shadow-lg border border-slate-700&quot;&gt;
+                                        &lt;p className=&quot;font-medium text-white&quot;&gt;{label}&lt;/p&gt;
+                                        &lt;p className=&quot;text-blue-400 text-sm&quot;&gt;Users: {data.users}&lt;/p&gt;
+                                        &lt;p className=&quot;text-slate-400 text-xs&quot;&gt;Conversion: {data.conversion_from_previous}%&lt;/p&gt;
+                                        &lt;p className=&quot;text-red-400 text-xs&quot;&gt;Drop-off: {data.drop_off}%&lt;/p&gt;
+                                    &lt;/div&gt;
+                                );
+                            }
+                            return null;
+                        }}
+                    /&gt;
+                    &lt;Bar dataKey=&quot;users&quot; radius={[0, 4, 4, 0]}&gt;
+                        {data.map((entry, index) =&gt; (
+                            &lt;Cell key={`cell-${index}`} fill={index === 0 ? &#x27;#3b82f6&#x27; : &#x27;#60a5fa&#x27;} fillOpacity={1 - (index * 0.15)} /&gt;
+                        ))}
+                    &lt;/Bar&gt;
+                &lt;/BarChart&gt;
+            &lt;/ResponsiveContainer&gt;
+        &lt;/div&gt;
+    );
+};
+
+export default FunnelChart;
+</code></pre>
+<br>
+<h3>frontend/src/components/MetricsCard.jsx</h3>
+<pre style='background-color: #f4f4f4; padding: 10px; border: 1px solid #ddd;'><code>import React from &#x27;react&#x27;;
+
+const MetricsCard = ({ title, value, subtext, trend }) =&gt; {
+    return (
+        &lt;div className=&quot;bg-slate-800 overflow-hidden rounded-lg shadow hover:shadow-md transition-shadow duration-300&quot;&gt;
+            &lt;div className=&quot;p-5&quot;&gt;
+                &lt;div className=&quot;flex items-center&quot;&gt;
+                    &lt;div className=&quot;flex-1&quot;&gt;
+                        &lt;dt className=&quot;text-sm font-medium text-slate-400 truncate&quot;&gt;{title}&lt;/dt&gt;
+                        &lt;dd className=&quot;mt-1 text-3xl font-semibold text-white&quot;&gt;{value}&lt;/dd&gt;
+                    &lt;/div&gt;
+                &lt;/div&gt;
+                &lt;div className=&quot;mt-4&quot;&gt;
+                    &lt;div className={`text-sm ${trend &gt;= 0 ? &#x27;text-green-400&#x27; : &#x27;text-red-400&#x27;}`}&gt;
+                        {subtext}
+                    &lt;/div&gt;
+                &lt;/div&gt;
+            &lt;/div&gt;
+        &lt;/div&gt;
+    );
+};
+
+export default MetricsCard;
+</code></pre>
+<br>
+<h3>frontend/src/components/UserSessions.jsx</h3>
+<pre style='background-color: #f4f4f4; padding: 10px; border: 1px solid #ddd;'><code>import React, { useEffect, useState } from &#x27;react&#x27;;
+import api from &#x27;../api&#x27;;
+
+const UserSessions = () =&gt; {
+    const [data, setData] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [sortBy, setSortBy] = useState(&#x27;total_hours&#x27;);
+
+    useEffect(() =&gt; {
+        fetchData();
+    }, [sortBy]);
+
+    const fetchData = async () =&gt; {
+        try {
+            const response = await api.get(`/user-sessions?limit=50&amp;sort_by=${sortBy}`);
+            setData(response.data.user_sessions);
+            setLoading(false);
+        } catch (err) {
+            console.error(&#x27;Error fetching user sessions:&#x27;, err);
+            setLoading(false);
+        }
+    };
+
+    const formatDate = (dateString) =&gt; {
+        const date = new Date(dateString);
+        return date.toLocaleString(&#x27;en-US&#x27;, {
+            year: &#x27;numeric&#x27;,
+            month: &#x27;short&#x27;,
+            day: &#x27;numeric&#x27;,
+            hour: &#x27;2-digit&#x27;,
+            minute: &#x27;2-digit&#x27;
+        });
+    };
+
+    if (loading) return &lt;div className=&quot;h-64 flex items-center justify-center text-slate-400&quot;&gt;Loading...&lt;/div&gt;;
+
+    return (
+        &lt;div className=&quot;space-y-4&quot;&gt;
+            {/* Header with sorting */}
+            &lt;div className=&quot;flex justify-between items-center&quot;&gt;
+                &lt;div className=&quot;text-sm text-slate-400&quot;&gt;
+                    Showing top 50 users by activity
+                &lt;/div&gt;
+                &lt;div className=&quot;flex gap-2&quot;&gt;
+                    &lt;label className=&quot;text-sm text-slate-400&quot;&gt;Sort by:&lt;/label&gt;
+                    &lt;select
+                        value={sortBy}
+                        onChange={(e) =&gt; setSortBy(e.target.value)}
+                        className=&quot;bg-slate-700 text-white text-sm rounded px-2 py-1 border border-slate-600 focus:outline-none focus:border-blue-500&quot;
+                    &gt;
+                        &lt;option value=&quot;total_hours&quot;&gt;Total Hours&lt;/option&gt;
+                        &lt;option value=&quot;total_sessions&quot;&gt;Total Sessions&lt;/option&gt;
+                        &lt;option value=&quot;last_activity&quot;&gt;Last Activity&lt;/option&gt;
+                    &lt;/select&gt;
+                &lt;/div&gt;
+            &lt;/div&gt;
+
+            {/* Table */}
+            &lt;div className=&quot;overflow-x-auto&quot;&gt;
+                &lt;table className=&quot;min-w-full divide-y divide-slate-700&quot;&gt;
+                    &lt;thead className=&quot;bg-slate-700&quot;&gt;
+                        &lt;tr&gt;
+                            &lt;th className=&quot;px-4 py-3 text-left text-xs font-medium text-slate-300 uppercase tracking-wider&quot;&gt;
+                                User ID
+                            &lt;/th&gt;
+                            &lt;th className=&quot;px-4 py-3 text-left text-xs font-medium text-slate-300 uppercase tracking-wider&quot;&gt;
+                                First Activity
+                            &lt;/th&gt;
+                            &lt;th className=&quot;px-4 py-3 text-left text-xs font-medium text-slate-300 uppercase tracking-wider&quot;&gt;
+                                Last Activity
+                            &lt;/th&gt;
+                            &lt;th className=&quot;px-4 py-3 text-center text-xs font-medium text-slate-300 uppercase tracking-wider&quot;&gt;
+                                Sessions
+                            &lt;/th&gt;
+                            &lt;th className=&quot;px-4 py-3 text-center text-xs font-medium text-slate-300 uppercase tracking-wider&quot;&gt;
+                                Total Hours
+                            &lt;/th&gt;
+                            &lt;th className=&quot;px-4 py-3 text-center text-xs font-medium text-slate-300 uppercase tracking-wider&quot;&gt;
+                                Avg Session
+                            &lt;/th&gt;
+                            &lt;th className=&quot;px-4 py-3 text-center text-xs font-medium text-slate-300 uppercase tracking-wider&quot;&gt;
+                                Status
+                            &lt;/th&gt;
+                        &lt;/tr&gt;
+                    &lt;/thead&gt;
+                    &lt;tbody className=&quot;bg-slate-800 divide-y divide-slate-700&quot;&gt;
+                        {data.map((user) =&gt; (
+                            &lt;tr key={user.user_id} className=&quot;hover:bg-slate-750 transition-colors&quot;&gt;
+                                &lt;td className=&quot;px-4 py-3 whitespace-nowrap text-sm font-medium text-white&quot;&gt;
+                                    {user.user_id}
+                                &lt;/td&gt;
+                                &lt;td className=&quot;px-4 py-3 whitespace-nowrap text-sm text-slate-300&quot;&gt;
+                                    {formatDate(user.first_activity)}
+                                &lt;/td&gt;
+                                &lt;td className=&quot;px-4 py-3 whitespace-nowrap text-sm text-slate-300&quot;&gt;
+                                    {formatDate(user.last_activity)}
+                                &lt;/td&gt;
+                                &lt;td className=&quot;px-4 py-3 whitespace-nowrap text-sm text-center text-white&quot;&gt;
+                                    {user.total_sessions}
+                                &lt;/td&gt;
+                                &lt;td className=&quot;px-4 py-3 whitespace-nowrap text-sm text-center font-semibold text-blue-400&quot;&gt;
+                                    {user.total_hours.toFixed(2)}h
+                                &lt;/td&gt;
+                                &lt;td className=&quot;px-4 py-3 whitespace-nowrap text-sm text-center text-slate-300&quot;&gt;
+                                    {user.avg_session_duration.toFixed(2)}h
+                                &lt;/td&gt;
+                                &lt;td className=&quot;px-4 py-3 whitespace-nowrap text-center&quot;&gt;
+                                    &lt;span className={`px-2 py-1 text-xs font-medium rounded-full ${user.status === &#x27;active&#x27;
+                                            ? &#x27;bg-green-900/50 text-green-300&#x27;
+                                            : &#x27;bg-slate-700 text-slate-400&#x27;
+                                        }`}&gt;
+                                        {user.status}
+                                    &lt;/span&gt;
+                                &lt;/td&gt;
+                            &lt;/tr&gt;
+                        ))}
+                    &lt;/tbody&gt;
+                &lt;/table&gt;
+            &lt;/div&gt;
+
+            {data.length === 0 &amp;&amp; (
+                &lt;div className=&quot;text-center py-8 text-slate-400&quot;&gt;
+                    No user session data available
+                &lt;/div&gt;
+            )}
+        &lt;/div&gt;
+    );
+};
+
+export default UserSessions;
+</code></pre>
+<br>
+
+</body></html>
