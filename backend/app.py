@@ -2,7 +2,8 @@ from flask import Flask, jsonify, request
 from flask_cors import CORS
 import pandas as pd
 import numpy as np
-from scipy import stats
+from statistics import NormalDist
+import math
 from datetime import datetime, timedelta
 from collections import defaultdict
 import json
@@ -348,7 +349,7 @@ def get_ab_test():
                 stats_result['z_score'] = float(round(z_score, 4))
                 
                 # P-Value (Two-tailed)
-                p_value = 2 * (1 - stats.norm.cdf(abs(z_score)))
+                p_value = 2 * (1 - NormalDist().cdf(abs(z_score)))
                 stats_result['p_value'] = float(round(p_value, 4))
                 
                 # Significance
@@ -364,9 +365,9 @@ def get_ab_test():
                 
                 # Power (1 - beta)
                 # alpha/2 for two-tailed
-                z_alpha = stats.norm.ppf(1 - alpha/2)
+                z_alpha = NormalDist().inv_cdf(1 - alpha/2)
                 z_beta = abs(h) * np.sqrt(n_harm/2) - z_alpha
-                power = stats.norm.cdf(z_beta)
+                power = NormalDist().cdf(z_beta)
                 stats_result['power'] = float(round(power, 4))
         
         results['stats'] = stats_result
@@ -535,10 +536,11 @@ def get_kpi_time_series():
         return jsonify({'error': str(e)}), 500
 
 
+# Load data on startup for Vercel
+load_data()
+
 if __name__ == '__main__':
     print("Loading data...")
-    if load_data():
-        print("Starting Flask server on http://localhost:5000")
-        app.run(debug=True, port=5000)
-    else:
-        print("Failed to load data. Please check Database file.")
+    # load_data() is already called above
+    print("Starting Flask server on http://localhost:5000")
+    app.run(debug=True, port=5000)
