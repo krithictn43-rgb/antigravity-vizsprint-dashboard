@@ -2,7 +2,7 @@
   "name": "antigravity-vizsprint-dashboard-root",
   "private": true,
   "scripts": {
-    "build": "npm run build"
+    "build": "cd frontend && npm ci && npm run build"
   },
   "engines": {
     "node": "24.x"
