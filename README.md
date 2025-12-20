@@ -32,13 +32,12 @@ VizSprints/
 ### 1. Data Generation
 Generate the synthetic data and initialize the database:
 ```bash
-# Install backend dependencies (if not using venv yet, create one recommended)
+# Install backend dependencies (Python 3.8+)
 cd backend
-pip install flask flask-cors pandas numpy scipy fpdf
+pip install -r requirements.txt
 
 # Go back to root to run data generation (if using raw script)
 cd ..
-# If you don't have the data generation script, you can use the provided CSVs or request it.
 # To initialize the SQLite database from CSVs:
 cd backend
 python init_db.py
@@ -78,4 +77,11 @@ npm run test
 ```
 
 ## Accessibility
-The application uses high-contrast colors (Blue 600) to ensure readability and compliance with WCAG AA standards.
+
+## Deployment
+
+### Vercel
+This project is configured for deployment on Vercel.
+1. Fork or push this repository to your GitHub.
+2. Import the project in Vercel.
+3. Vercel will automatically detect the configuration in `vercel.json` and deploy.
